@@ -28,7 +28,7 @@ model Password {
 }
 
 model Board {
-  id        Int      @id @default(autoincrement())
+  id        String   @id
   name      String
   color     String   @default("#e0e0e0")
   createdAt DateTime @default(now())
@@ -39,16 +39,16 @@ model Board {
 }
 
 model Column {
-  id      String @id @default(uuid())
+  id      String @id
   name    String
   order   Float  @default(0)
   items   Item[]
   Board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  boardId Int
+  boardId String
 }
 
 model Item {
-  id      String  @id @default(uuid())
+  id      String  @id
   title   String
   content String?
 
@@ -60,6 +60,6 @@ model Item {
   Column   Column @relation(fields: [columnId], references: [id], onDelete: Cascade)
   columnId String
 
-  Board   Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  boardId Int
+  Board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  boardId String
 }

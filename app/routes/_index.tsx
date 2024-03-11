@@ -9,6 +9,7 @@ export default function Index() {
   return (
     <div className="h-full flex flex-col items-center pt-20 bg-slate-900">
       <img src="/remix-logo-new@dark.png" width="402" height="149" />
+      <Link to="/about">About</Link>
       <div className="space-y-4 max-w-md text-lg text-slate-300">
         <p>
           This is a demo app to show off the features of Remix and teach them

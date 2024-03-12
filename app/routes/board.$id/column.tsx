@@ -11,6 +11,7 @@ import { EditableText } from "./components";
 import { useSubscribe } from "replicache-react";
 import { replicache } from "~/replicache/client";
 import { ItemData } from "~/replicache/data";
+import { undoManager } from "~/replicache/undo";
 
 interface ColumnProps {
   name: string;
@@ -64,17 +65,35 @@ export function Column({ name, columnId, boardId }: ColumnProps) {
       onDragLeave={() => {
         setAcceptDrop(false);
       }}
-      onDrop={(event) => {
+      onDrop={async (event) => {
         let transfer = JSON.parse(
           event.dataTransfer.getData(CONTENT_TYPES.card),
         );
         invariant(transfer.id, "missing transfer.id");
         invariant(transfer.title, "missing transfer.title");
 
-        replicache?.mutate.updateItem({
-          id: transfer.id,
-          columnId: columnId,
-          order: 1,
+        const item = await replicache?.query(async (tx) => {
+          const [result] = await tx
+            .scan<ItemData>({
+              prefix: `item/${transfer.id}`,
+              limit: 1,
+            })
+            .values()
+            .toArray();
+          return result;
+        });
+
+        invariant(item, "missing item");
+
+        undoManager.add({
+          execute: () => {
+            replicache?.mutate.updateItem({
+              id: transfer.id,
+              columnId: columnId,
+              order: 1,
+            });
+          },
+          undo: () => replicache?.mutate.updateItem(item),
         });
 
         setAcceptDrop(false);
@@ -89,7 +108,14 @@ export function Column({ name, columnId, boardId }: ColumnProps) {
           inputClassName="border border-slate-400 w-full rounded-lg py-1 px-2 font-medium text-black"
           buttonClassName="block rounded-lg text-left w-full border border-transparent py-1 px-2 font-medium text-slate-600"
           onEdit={(text) => {
-            replicache?.mutate.updateColumn({ id: columnId, name: text });
+            undoManager.add({
+              execute: () => {
+                replicache?.mutate.updateColumn({ id: columnId, name: text });
+              },
+              undo: () => {
+                replicache?.mutate.updateColumn({ id: columnId, name });
+              },
+            });
           }}
         />
       </div>

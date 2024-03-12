@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import invariant from "tiny-invariant";
-import { Link, useParams } from "@remix-run/react";
+import { Link, useNavigate, useParams } from "@remix-run/react";
 import { Column } from "./column";
 import { NewColumn } from "./new-column";
 import { EditableText } from "./components";
@@ -8,6 +8,8 @@ import { useSubscribe } from "replicache-react";
 import { replicache } from "~/replicache/client";
 import { BoardData, ColumnData } from "~/replicache/data";
 import { Icon } from "~/icons/icons";
+import { useHotkeys } from "react-hotkeys-hook";
+import { undoManager } from "~/replicache/undo";
 
 export function Board() {
   const { id } = useParams();
@@ -37,6 +39,9 @@ export function Board() {
       default: [],
     },
   );
+
+  const navigate = useNavigate();
+  useHotkeys("esc", () => navigate("/home"), []);
 
   let scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -70,7 +75,17 @@ export function Board() {
             buttonLabel={`Edit board "${board.name}" name`}
             inputLabel="Edit board name"
             onEdit={(text) => {
-              replicache?.mutate.updateBoard({ id: board.id, name: text });
+              undoManager.add({
+                execute: () => {
+                  replicache?.mutate.updateBoard({ id: board.id, name: text });
+                },
+                undo: () => {
+                  replicache?.mutate.updateBoard({
+                    id: board.id,
+                    name: board.name,
+                  });
+                },
+              });
             }}
           />
         </h1>

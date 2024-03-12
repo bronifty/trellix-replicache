@@ -63,14 +63,14 @@ export async function handleReplicachePush(
         }
         case "updateBoard": {
           const { id, ...data } = mutation.args as BoardData;
-          await tx.board.update({
+          await tx.board.updateMany({
             where: { id, accountId },
             data: data,
           });
           break;
         }
         case "deleteBoard": {
-          await tx.board.delete({
+          await tx.board.deleteMany({
             where: { id: mutation.args as string, accountId },
           });
           break;
@@ -107,7 +107,7 @@ export async function handleReplicachePush(
             "User does not own board",
           );
 
-          await tx.column.update({
+          await tx.column.updateMany({
             where: { id },
             data: data,
           });
@@ -126,19 +126,22 @@ export async function handleReplicachePush(
             "User does not own board",
           );
 
-          await tx.column.delete({
+          await tx.column.deleteMany({
             where: { id },
           });
           break;
         }
         case "createItem": {
           const { id, columnId, ...data } = mutation.args as ItemData;
-          const column = await tx.column.findFirstOrThrow({
+          const column = await tx.column.findFirst({
             where: { id: columnId },
             include: {
               Board: true,
             },
           });
+
+          if (!column) break;
+
           invariant(
             column.Board.accountId === accountId,
             "User does not own board",
@@ -158,7 +161,7 @@ export async function handleReplicachePush(
         }
         case "updateItem": {
           const { id, ...data } = mutation.args as ItemData;
-          const item = await tx.item.findFirstOrThrow({
+          const item = await tx.item.findFirst({
             where: { id },
             include: {
               Column: {
@@ -168,12 +171,15 @@ export async function handleReplicachePush(
               },
             },
           });
+
+          if (!item) break;
+
           invariant(
             item.Column.Board.accountId === accountId,
             "User does not own board",
           );
 
-          await tx.item.update({
+          await tx.item.updateMany({
             where: { id },
             data: data,
           });
@@ -181,7 +187,7 @@ export async function handleReplicachePush(
         }
         case "deleteItem": {
           const id = mutation.args as string;
-          const item = await tx.item.findFirstOrThrow({
+          const item = await tx.item.findFirst({
             where: { id },
             include: {
               Column: {
@@ -191,12 +197,15 @@ export async function handleReplicachePush(
               },
             },
           });
+
+          if (!item) break;
+
           invariant(
             item.Column.Board.accountId === accountId,
             "User does not own board",
           );
 
-          await tx.item.delete({
+          await tx.item.deleteMany({
             where: { id },
           });
           break;

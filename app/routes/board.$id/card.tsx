@@ -5,6 +5,8 @@ import { Icon } from "~/icons/icons";
 
 import { CONTENT_TYPES } from "./types";
 import { replicache } from "~/replicache/client";
+import { ItemData } from "~/replicache/data";
+import { undoManager } from "~/replicache/undo";
 
 interface CardProps {
   title: string;
@@ -41,7 +43,7 @@ export function Card({
       onDragLeave={() => {
         setAcceptDrop("none");
       }}
-      onDrop={(event) => {
+      onDrop={async (event) => {
         event.stopPropagation();
 
         let transfer = JSON.parse(
@@ -53,10 +55,30 @@ export function Card({
         let droppedOrder = acceptDrop === "top" ? previousOrder : nextOrder;
         let moveOrder = (droppedOrder + order) / 2;
 
-        replicache?.mutate.updateItem({
-          id: transfer.id,
-          order: moveOrder,
-          columnId: columnId,
+        const item = await replicache?.query(async (tx) => {
+          const [result] = await tx
+            .scan<ItemData>({
+              prefix: `item/${transfer.id}`,
+              limit: 1,
+            })
+            .values()
+            .toArray();
+          return result;
+        });
+
+        invariant(item, "missing item");
+
+        undoManager.add({
+          execute: () =>
+            replicache?.mutate.updateItem({
+              id: transfer.id,
+              order: moveOrder,
+              columnId: columnId,
+            }),
+          undo: () => {
+            console.log("undoing");
+            replicache?.mutate.updateItem(item);
+          },
         });
 
         setAcceptDrop("none");
@@ -84,9 +106,26 @@ export function Card({
         <h3>{title}</h3>
         <div className="mt-2">{content || <>&nbsp;</>}</div>
         <form
-          onSubmit={(event) => {
+          onSubmit={async (event) => {
             event.preventDefault();
-            replicache?.mutate.deleteItem(id);
+
+            const item = await replicache?.query(async (tx) => {
+              const [result] = await tx
+                .scan<ItemData>({
+                  prefix: `item/${id}`,
+                  limit: 1,
+                })
+                .values()
+                .toArray();
+              return result;
+            });
+
+            invariant(item, "missing item");
+
+            undoManager.add({
+              execute: () => replicache?.mutate.deleteItem(id),
+              undo: () => replicache?.mutate.updateItem(item),
+            });
           }}
         >
           <button

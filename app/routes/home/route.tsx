@@ -4,8 +4,10 @@ import { Label, LabeledInput } from "~/components/input";
 import { Icon } from "~/icons/icons";
 import { useSubscribe } from "replicache-react";
 import { replicache } from "~/replicache/client";
-import { BoardData } from "~/replicache/data";
+import { BoardData, ItemData } from "~/replicache/data";
 import { nanoid } from "nanoid";
+import { undoManager } from "~/replicache/undo";
+import invariant from "tiny-invariant";
 
 export const meta = () => {
   return [{ title: "Boards" }];
@@ -63,9 +65,26 @@ function Board({
     >
       <div className="font-bold">{name}</div>
       <form
-        onSubmit={(event) => {
+        onSubmit={async (event) => {
           event.preventDefault();
-          replicache?.mutate.deleteBoard(id);
+
+          const board = await replicache?.query(async (tx) => {
+            const [result] = await tx
+              .scan<BoardData>({
+                prefix: `board/${id}`,
+                limit: 1,
+              })
+              .values()
+              .toArray();
+            return result;
+          });
+
+          invariant(board, "missing board");
+
+          undoManager.add({
+            execute: () => replicache?.mutate.deleteBoard(id),
+            undo: () => replicache?.mutate.createBoard(board),
+          });
         }}
       >
         <button
@@ -94,22 +113,28 @@ function NewBoard() {
 
         const formData = new FormData(event.currentTarget);
 
-        const boardId = nanoid();
-
-        replicache?.mutate.createBoard({
-          id: boardId,
+        const board: BoardData = {
+          id: nanoid(),
           name: formData.get("name") as string,
           color: formData.get("color") as string,
           createdAt: new Date().toISOString(),
-        });
+        };
 
-        navigate(`/board/${boardId}`);
+        undoManager.add({
+          execute: () => {
+            replicache?.mutate.createBoard(board);
+            navigate(`/board/${board.id}`);
+          },
+          undo: () => {
+            replicache?.mutate.deleteBoard(board.id);
+            navigate("/home");
+          },
+        });
       }}
     >
-      <input type="hidden" name="intent" value="createBoard" />
       <div>
         <h2 className="font-bold mb-2 text-xl">New Board</h2>
-        <LabeledInput label="Name" name="name" type="text" required />
+        <LabeledInput label="Name" name="name" type="text" required autoFocus />
       </div>
 
       <div className="mt-4 flex items-center gap-4">

@@ -1,20 +1,21 @@
 import {
+  Link,
   Links,
-  LiveReload,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
-  useLoaderData,
   type ShouldRevalidateFunctionArgs,
-  Link,
+  useLoaderData,
 } from "@remix-run/react";
-import { redirect, type DataFunctionArgs } from "@remix-run/node";
+import { type DataFunctionArgs, redirect } from "@remix-run/node";
 
 import { LoginIcon, LogoutIcon } from "./icons/icons";
 import { getAuthFromRequest } from "./auth/auth";
 
 import "./styles.css";
+import { useHotkeys } from "react-hotkeys-hook";
+import { undoManager } from "~/replicache/undo";
 
 export async function loader({ request }: DataFunctionArgs) {
   let auth = await getAuthFromRequest(request);
@@ -30,6 +31,9 @@ export function shouldRevalidate({ formAction }: ShouldRevalidateFunctionArgs) {
 
 export default function App() {
   let userId = useLoaderData<typeof loader>();
+
+  useHotkeys("mod+z", () => undoManager.undo(), []);
+  useHotkeys("mod+shift+z", () => undoManager.redo(), []);
 
   return (
     <html lang="en">

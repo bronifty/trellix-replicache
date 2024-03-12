@@ -3,6 +3,7 @@ import invariant from "tiny-invariant";
 import { CancelButton, SaveButton } from "./components";
 import { replicache } from "~/replicache/client";
 import { nanoid } from "nanoid";
+import { undoManager } from "~/replicache/undo";
 
 export function NewCard({
   columnId,
@@ -28,12 +29,17 @@ export function NewCard({
 
         let formData = new FormData(event.currentTarget);
 
-        replicache?.mutate.createItem({
+        const item = {
           id: nanoid(),
           columnId,
           boardId,
           order: nextOrder,
           title: formData.get("title") as string,
+        };
+
+        undoManager.add({
+          execute: () => replicache?.mutate.createItem(item),
+          undo: () => replicache?.mutate.deleteItem(item.id),
         });
 
         invariant(textAreaRef.current);

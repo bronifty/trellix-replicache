@@ -7,6 +7,8 @@ import { Form, useSubmit } from "@remix-run/react";
 import { CancelButton, SaveButton } from "./components";
 import { replicache } from "~/replicache/client";
 import { nanoid } from "nanoid";
+import { ColumnData } from "~/replicache/data";
+import { undoManager } from "~/replicache/undo";
 
 export function NewColumn({
   boardId,
@@ -33,11 +35,16 @@ export function NewColumn({
 
         let formData = new FormData(event.currentTarget);
 
-        replicache?.mutate.createColumn({
+        const column: ColumnData = {
           id: nanoid(),
           boardId,
           name: formData.get("name") as string,
           order: nextOrder,
+        };
+
+        undoManager.add({
+          execute: () => replicache?.mutate.createColumn(column),
+          undo: () => replicache?.mutate.deleteColumn(column.id),
         });
 
         onAdd();

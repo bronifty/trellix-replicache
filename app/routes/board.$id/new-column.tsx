@@ -2,7 +2,6 @@ import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import invariant from "tiny-invariant";
 import { Icon } from "~/icons/icons";
-import { Form } from "@remix-run/react";
 
 import { CancelButton, SaveButton } from "./components";
 import { nanoid } from "nanoid";
@@ -26,9 +25,7 @@ export function NewColumn({
   let replicache = useReplicache();
 
   return editing ? (
-    <Form
-      method="post"
-      navigate={false}
+    <form
       className="p-2 flex-shrink-0 flex flex-col gap-5 overflow-hidden max-h-full w-80 border rounded-xl shadow bg-slate-100"
       onSubmit={(event) => {
         event.preventDefault();
@@ -70,7 +67,7 @@ export function NewColumn({
         <SaveButton>Save Column</SaveButton>
         <CancelButton onClick={() => setEditing(false)}>Cancel</CancelButton>
       </div>
-    </Form>
+    </form>
   ) : (
     <button
       onClick={() => {

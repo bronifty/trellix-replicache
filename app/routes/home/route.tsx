@@ -6,7 +6,6 @@ import { useSubscribe } from "replicache-react";
 import { BoardData } from "~/replicache/data";
 import { nanoid } from "nanoid";
 import { undoManager } from "~/replicache/undo";
-import invariant from "tiny-invariant";
 import { useReplicache } from "~/replicache/provider";
 
 export const meta = () => {
@@ -72,23 +71,13 @@ function Board({
         onSubmit={async (event) => {
           event.preventDefault();
 
-          const board = await replicache?.query(async (tx) => {
-            const [result] = await tx
-              .scan<BoardData>({
-                prefix: `board/${id}`,
-                limit: 1,
-              })
-              .values()
-              .toArray();
-            return result;
-          });
-
-          invariant(board, "missing board");
-
-          undoManager.add({
-            execute: () => replicache?.mutate.deleteBoard(id),
-            undo: () => replicache?.mutate.createBoard(board),
-          });
+          if (
+            window.confirm(
+              `Are you sure you want to delete the "${name}" board?\nThis action cannot be undone.`,
+            )
+          ) {
+            replicache?.mutate.deleteBoard(id);
+          }
         }}
       >
         <button
@@ -124,13 +113,14 @@ function NewBoard() {
           color: formData.get("color") as string,
           createdAt: new Date().toISOString(),
         };
+
         undoManager.add({
           execute: () => {
             navigate(`/board/${board.id}`);
             // Avoid new board flash
             setTimeout(() => {
               replicache?.mutate.createBoard(board);
-            }, 1);
+            }, 100);
           },
           undo: () => {
             replicache?.mutate.deleteBoard(board.id);

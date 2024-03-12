@@ -6,11 +6,10 @@
   "scripts": {
     "build": "NODE_ENV=production vite build && vite build --ssr",
     "postbuild": "prisma generate",
-    "dev": "vite dev",
+    "dev": "remix vite:dev",
     "start": "NODE_ENV=production remix-serve ./build/server/index.js",
     "migrate": "npx prisma migrate dev",
-    "typecheck": "tsc",
-    "deploy": "rm -rf build && rm -rf public/build && fly deploy"
+    "typecheck": "tsc"
   },
   "dependencies": {
     "@prisma/client": "^5.10.2",

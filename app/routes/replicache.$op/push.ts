@@ -78,10 +78,14 @@ export async function handleReplicachePush(
         case "createColumn": {
           const { id, boardId, ...data } = mutation.args as ColumnData;
 
-          const board = await tx.board.findFirstOrThrow({
+          const board = await tx.board.findFirst({
             where: { id: boardId, accountId },
           });
-          invariant(board.accountId === accountId, "User does not own board");
+
+          invariant(
+            !board || board.accountId === accountId,
+            "User does not own board",
+          );
 
           await tx.column.create({
             data: {
@@ -96,14 +100,15 @@ export async function handleReplicachePush(
         case "updateColumn": {
           const { id, ...data } = mutation.args as ColumnData;
 
-          const column = await tx.column.findFirstOrThrow({
+          const column = await tx.column.findFirst({
             where: { id },
             include: {
               Board: true,
             },
           });
+
           invariant(
-            column.Board.accountId === accountId,
+            !column || column.Board.accountId === accountId,
             "User does not own board",
           );
 
@@ -115,14 +120,15 @@ export async function handleReplicachePush(
         }
         case "deleteColumn": {
           const id = mutation.args as string;
-          const column = await tx.column.findFirstOrThrow({
+          const column = await tx.column.findFirst({
             where: { id: id },
             include: {
               Board: true,
             },
           });
+
           invariant(
-            column.Board.accountId === accountId,
+            !column || column.Board.accountId === accountId,
             "User does not own board",
           );
 
@@ -140,10 +146,8 @@ export async function handleReplicachePush(
             },
           });
 
-          if (!column) break;
-
           invariant(
-            column.Board.accountId === accountId,
+            !column || column.Board.accountId === accountId,
             "User does not own board",
           );
 
@@ -172,10 +176,8 @@ export async function handleReplicachePush(
             },
           });
 
-          if (!item) break;
-
           invariant(
-            item.Column.Board.accountId === accountId,
+            !item || item.Column.Board.accountId === accountId,
             "User does not own board",
           );
 
@@ -198,10 +200,8 @@ export async function handleReplicachePush(
             },
           });
 
-          if (!item) break;
-
           invariant(
-            item.Column.Board.accountId === accountId,
+            !item || item.Column.Board.accountId === accountId,
             "User does not own board",
           );
 

@@ -1,28 +1,40 @@
-import { useState, useRef } from "react";
-import { useSubmit } from "@remix-run/react";
+import { useRef, useState } from "react";
 import invariant from "tiny-invariant";
 
 import { Icon } from "~/icons/icons";
 
-import {
-  ItemMutation,
-  INTENTS,
-  CONTENT_TYPES,
-  type RenderedItem,
-} from "./types";
+import { CONTENT_TYPES } from "./types";
 import { NewCard } from "./new-card";
 import { flushSync } from "react-dom";
 import { Card } from "./card";
 import { EditableText } from "./components";
+import { useSubscribe } from "replicache-react";
+import { replicache } from "~/replicache/client";
+import { ItemData } from "~/replicache/data";
 
 interface ColumnProps {
   name: string;
   columnId: string;
-  items: RenderedItem[];
 }
 
-export function Column({ name, columnId, items }: ColumnProps) {
-  let submit = useSubmit();
+export function Column({ name, columnId }: ColumnProps) {
+  const items = useSubscribe(
+    replicache,
+    async (tx) => {
+      const items = await tx
+        .scan<ItemData>({ prefix: `item/` })
+        .values()
+        .toArray();
+
+      return items
+        .filter((c) => c.columnId === columnId)
+        .sort((a, b) => a.order - b.order);
+    },
+    {
+      dependencies: [columnId],
+      default: [],
+    },
+  );
 
   let [acceptDrop, setAcceptDrop] = useState(false);
   let [edit, setEdit] = useState(false);
@@ -58,23 +70,11 @@ export function Column({ name, columnId, items }: ColumnProps) {
         invariant(transfer.id, "missing transfer.id");
         invariant(transfer.title, "missing transfer.title");
 
-        let mutation: ItemMutation = {
-          order: 1,
-          columnId: columnId,
+        replicache?.mutate.updateItem({
           id: transfer.id,
-          title: transfer.title,
-        };
-
-        submit(
-          { ...mutation, intent: INTENTS.moveItem },
-          {
-            method: "post",
-            navigate: false,
-            // use the same fetcher instance for any mutations on this card so
-            // that interruptions cancel the earlier request and revalidation
-            fetcherKey: `card:${transfer.id}`,
-          },
-        );
+          columnId: columnId,
+          order: 1,
+        });
 
         setAcceptDrop(false);
       }}
@@ -87,10 +87,10 @@ export function Column({ name, columnId, items }: ColumnProps) {
           buttonLabel={`Edit column "${name}" name`}
           inputClassName="border border-slate-400 w-full rounded-lg py-1 px-2 font-medium text-black"
           buttonClassName="block rounded-lg text-left w-full border border-transparent py-1 px-2 font-medium text-slate-600"
-        >
-          <input type="hidden" name="intent" value={INTENTS.updateColumn} />
-          <input type="hidden" name="columnId" value={columnId} />
-        </EditableText>
+          onEdit={(text) => {
+            replicache?.mutate.updateColumn({ id: columnId, name: text });
+          }}
+        />
       </div>
 
       <ul ref={listRef} className="flex-grow overflow-auto">

@@ -1,8 +1,6 @@
 import { prisma } from "~/db/prisma";
 
-import { ItemMutation } from "./types";
-
-export function deleteCard(id: string, accountId: string) {
+export function deleteItem(id: string, accountId: string) {
   return prisma.item.delete({ where: { id, Board: { accountId } } });
 }
 

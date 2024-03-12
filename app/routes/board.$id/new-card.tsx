@@ -1,9 +1,8 @@
 import { useRef } from "react";
 import invariant from "tiny-invariant";
-import { Form, useSubmit } from "@remix-run/react";
-
-import { INTENTS, ItemMutationFields } from "./types";
-import { SaveButton, CancelButton } from "./components";
+import { CancelButton, SaveButton } from "./components";
+import { replicache } from "~/replicache/client";
+import { nanoid } from "nanoid";
 
 export function NewCard({
   columnId,
@@ -18,24 +17,20 @@ export function NewCard({
 }) {
   let textAreaRef = useRef<HTMLTextAreaElement>(null);
   let buttonRef = useRef<HTMLButtonElement>(null);
-  let submit = useSubmit();
 
   return (
-    <Form
-      method="post"
+    <form
       className="px-2 py-1 border-t-2 border-b-2 border-transparent"
       onSubmit={(event) => {
         event.preventDefault();
 
         let formData = new FormData(event.currentTarget);
-        let id = crypto.randomUUID();
-        formData.set(ItemMutationFields.id.name, id);
 
-        submit(formData, {
-          method: "post",
-          fetcherKey: `card:${id}`,
-          navigate: false,
-          unstable_flushSync: true,
+        replicache?.mutate.createItem({
+          id: nanoid(),
+          columnId,
+          order: nextOrder,
+          title: formData.get("title") as string,
         });
 
         invariant(textAreaRef.current);
@@ -48,23 +43,11 @@ export function NewCard({
         }
       }}
     >
-      <input type="hidden" name="intent" value={INTENTS.createItem} />
-      <input
-        type="hidden"
-        name={ItemMutationFields.columnId.name}
-        value={columnId}
-      />
-      <input
-        type="hidden"
-        name={ItemMutationFields.order.name}
-        value={nextOrder}
-      />
-
       <textarea
         autoFocus
         required
         ref={textAreaRef}
-        name={ItemMutationFields.title.name}
+        name="title"
         placeholder="Enter a title for this card"
         className="outline-none shadow text-sm rounded-lg w-full py-1 px-2 resize-none placeholder:text-sm placeholder:text-slate-500 h-14"
         onKeyDown={(event) => {
@@ -86,6 +69,6 @@ export function NewCard({
         <SaveButton ref={buttonRef}>Save Card</SaveButton>
         <CancelButton onClick={onComplete}>Cancel</CancelButton>
       </div>
-    </Form>
+    </form>
   );
 }

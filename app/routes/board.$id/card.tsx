@@ -1,14 +1,14 @@
 import invariant from "tiny-invariant";
-import { useFetcher, useSubmit } from "@remix-run/react";
 import { useState } from "react";
 
 import { Icon } from "~/icons/icons";
 
-import { ItemMutation, INTENTS, CONTENT_TYPES } from "./types";
+import { CONTENT_TYPES } from "./types";
+import { replicache } from "~/replicache/client";
 
 interface CardProps {
   title: string;
-  content: string | null;
+  content?: string | null;
   id: string;
   columnId: string;
   order: number;
@@ -25,12 +25,9 @@ export function Card({
   nextOrder,
   previousOrder,
 }: CardProps) {
-  let submit = useSubmit();
-  let deleteFetcher = useFetcher();
-
   let [acceptDrop, setAcceptDrop] = useState<"none" | "top" | "bottom">("none");
 
-  return deleteFetcher.state !== "idle" ? null : (
+  return (
     <li
       onDragOver={(event) => {
         if (event.dataTransfer.types.includes(CONTENT_TYPES.card)) {
@@ -56,21 +53,11 @@ export function Card({
         let droppedOrder = acceptDrop === "top" ? previousOrder : nextOrder;
         let moveOrder = (droppedOrder + order) / 2;
 
-        let mutation: ItemMutation = {
+        replicache?.mutate.updateItem({
+          id: transfer.id,
           order: moveOrder,
           columnId: columnId,
-          id: transfer.id,
-          title: transfer.title,
-        };
-
-        submit(
-          { ...mutation, intent: INTENTS.moveItem },
-          {
-            method: "post",
-            navigate: false,
-            fetcherKey: `card:${transfer.id}`,
-          },
-        );
+        });
 
         setAcceptDrop("none");
       }}
@@ -79,8 +66,8 @@ export function Card({
         (acceptDrop === "top"
           ? "border-t-brand-red border-b-transparent"
           : acceptDrop === "bottom"
-          ? "border-b-brand-red border-t-transparent"
-          : "border-t-transparent border-b-transparent")
+            ? "border-b-brand-red border-t-transparent"
+            : "border-t-transparent border-b-transparent")
       }
     >
       <div
@@ -96,9 +83,12 @@ export function Card({
       >
         <h3>{title}</h3>
         <div className="mt-2">{content || <>&nbsp;</>}</div>
-        <deleteFetcher.Form method="post">
-          <input type="hidden" name="intent" value={INTENTS.deleteCard} />
-          <input type="hidden" name="itemId" value={id} />
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            replicache?.mutate.deleteItem(id);
+          }}
+        >
           <button
             aria-label="Delete card"
             className="absolute top-4 right-4 hover:text-brand-red"
@@ -109,7 +99,7 @@ export function Card({
           >
             <Icon name="trash" />
           </button>
-        </deleteFetcher.Form>
+        </form>
       </div>
     </li>
   );

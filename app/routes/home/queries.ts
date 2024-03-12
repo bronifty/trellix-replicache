@@ -20,10 +20,3 @@ export async function createBoard(userId: string, name: string, color: string) {
   });
 }
 
-export async function getHomeData(userId: string) {
-  return prisma.board.findMany({
-    where: {
-      accountId: userId,
-    },
-  });
-}

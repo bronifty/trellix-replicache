@@ -36,21 +36,21 @@ export let CancelButton = forwardRef<
 });
 
 export function EditableText({
-  children,
-  fieldName,
-  value,
-  inputClassName,
-  inputLabel,
-  buttonClassName,
-  buttonLabel,
-}: {
-  children: React.ReactNode;
+                               fieldName,
+                               value,
+                               inputClassName,
+                               inputLabel,
+                               buttonClassName,
+                               buttonLabel,
+                               onEdit
+                             }: {
   fieldName: string;
   value: string;
   inputClassName: string;
   inputLabel: string;
   buttonClassName: string;
   buttonLabel: string;
+  onEdit: (text: string) => any;
 }) {
   let fetcher = useFetcher();
   let [edit, setEdit] = useState(false);
@@ -63,16 +63,19 @@ export function EditableText({
   }
 
   return edit ? (
-    <fetcher.Form
+    <form
       method="post"
-      onSubmit={() => {
+      onSubmit={(event) => {
+        event.preventDefault();
+
+        onEdit(inputRef.current?.value || "");
+
         flushSync(() => {
           setEdit(false);
         });
         buttonRef.current?.focus();
       }}
     >
-      {children}
       <input
         required
         ref={inputRef}
@@ -94,12 +97,12 @@ export function EditableText({
             inputRef.current?.value !== value &&
             inputRef.current?.value.trim() !== ""
           ) {
-            fetcher.submit(event.currentTarget);
+            onEdit(inputRef.current?.value || "");
           }
           setEdit(false);
         }}
       />
-    </fetcher.Form>
+    </form>
   ) : (
     <button
       aria-label={buttonLabel}

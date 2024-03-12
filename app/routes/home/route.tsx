@@ -1,59 +1,15 @@
-import {
-  type ActionFunctionArgs,
-  type LoaderFunctionArgs,
-  redirect,
-  broadcastDevReady,
-} from "@remix-run/node";
-import {
-  Form,
-  Link,
-  useFetcher,
-  useLoaderData,
-  useNavigation,
-} from "@remix-run/react";
-
-import { requireAuthCookie } from "~/auth/auth";
+import { Link, useNavigate } from "@remix-run/react";
 import { Button } from "~/components/button";
 import { Label, LabeledInput } from "~/components/input";
-import { badRequest } from "~/http/bad-request";
-
-import { getHomeData, createBoard, deleteBoard } from "./queries";
-import { INTENTS } from "../board.$id/types";
 import { Icon } from "~/icons/icons";
+import { useSubscribe } from "replicache-react";
+import { replicache } from "~/replicache/client";
+import { BoardData } from "~/replicache/data";
+import { nanoid } from "nanoid";
 
 export const meta = () => {
   return [{ title: "Boards" }];
 };
-
-export async function loader({ request }: LoaderFunctionArgs) {
-  let userId = await requireAuthCookie(request);
-  let boards = await getHomeData(userId);
-  return { boards };
-}
-
-export async function action({ request }: ActionFunctionArgs) {
-  let accountId = await requireAuthCookie(request);
-  let formData = await request.formData();
-  let intent = String(formData.get("intent"));
-  switch (intent) {
-    case INTENTS.createBoard: {
-      let name = String(formData.get("name") || "");
-      let color = String(formData.get("color") || "");
-      if (!name) throw badRequest("Bad request");
-      let board = await createBoard(accountId, name, color);
-      return redirect(`/board/${board.id}`);
-    }
-    case INTENTS.deleteBoard: {
-      let boardId = formData.get("boardId");
-      if (!boardId) throw badRequest("Missing boardId");
-      await deleteBoard(Number(boardId), accountId);
-      return { ok: true };
-    }
-    default: {
-      throw badRequest(`Unknown intent: ${intent}`);
-    }
-  }
-}
 
 export default function Projects() {
   return (
@@ -65,7 +21,14 @@ export default function Projects() {
 }
 
 function Boards() {
-  let { boards } = useLoaderData<typeof loader>();
+  const boards = useSubscribe(
+    replicache,
+    (tx) => tx.scan<BoardData>({ prefix: `board/` }).values().toArray(),
+    {
+      default: [],
+    },
+  );
+
   return (
     <div className="p-8">
       <h2 className="font-bold mb-2 text-xl">Boards</h2>
@@ -89,21 +52,22 @@ function Board({
   color,
 }: {
   name: string;
-  id: number;
+  id: string;
   color: string;
 }) {
-  let fetcher = useFetcher();
-  let isDeleting = fetcher.state !== "idle";
-  return isDeleting ? null : (
+  return (
     <Link
       to={`/board/${id}`}
       className="w-60 h-40 p-4 block border-b-8 shadow rounded hover:shadow-lg bg-white relative"
       style={{ borderColor: color }}
     >
       <div className="font-bold">{name}</div>
-      <fetcher.Form method="post">
-        <input type="hidden" name="intent" value={INTENTS.deleteBoard} />
-        <input type="hidden" name="boardId" value={id} />
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          replicache?.mutate.deleteBoard(id);
+        }}
+      >
         <button
           aria-label="Delete board"
           className="absolute top-4 right-4 hover:text-brand-red"
@@ -114,17 +78,34 @@ function Board({
         >
           <Icon name="trash" />
         </button>
-      </fetcher.Form>
+      </form>
     </Link>
   );
 }
 
 function NewBoard() {
-  let navigation = useNavigation();
-  let isCreating = navigation.formData?.get("intent") === "createBoard";
+  let navigate = useNavigate();
 
   return (
-    <Form method="post" className="p-8 max-w-md">
+    <form
+      className="p-8 max-w-md"
+      onSubmit={(event) => {
+        event.preventDefault();
+
+        const formData = new FormData(event.currentTarget);
+
+        const boardId = nanoid();
+
+        replicache?.mutate.createBoard({
+          id: boardId,
+          name: formData.get("name") as string,
+          color: formData.get("color") as string,
+          createdAt: new Date().toISOString(),
+        });
+
+        navigate(`/board/${boardId}`);
+      }}
+    >
       <input type="hidden" name="intent" value="createBoard" />
       <div>
         <h2 className="font-bold mb-2 text-xl">New Board</h2>
@@ -142,8 +123,8 @@ function NewBoard() {
             className="bg-transparent"
           />
         </div>
-        <Button type="submit">{isCreating ? "Creating..." : "Create"}</Button>
+        <Button type="submit">Create</Button>
       </div>
-    </Form>
+    </form>
   );
 }

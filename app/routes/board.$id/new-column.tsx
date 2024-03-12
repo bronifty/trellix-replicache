@@ -4,15 +4,18 @@ import invariant from "tiny-invariant";
 import { Icon } from "~/icons/icons";
 import { Form, useSubmit } from "@remix-run/react";
 
-import { INTENTS } from "./types";
 import { CancelButton, SaveButton } from "./components";
+import { replicache } from "~/replicache/client";
+import { nanoid } from "nanoid";
 
 export function NewColumn({
   boardId,
+  nextOrder,
   onAdd,
   editInitially,
 }: {
-  boardId: number;
+  boardId: string;
+  nextOrder: number;
   onAdd: () => void;
   editInitially: boolean;
 }) {
@@ -27,14 +30,18 @@ export function NewColumn({
       className="p-2 flex-shrink-0 flex flex-col gap-5 overflow-hidden max-h-full w-80 border rounded-xl shadow bg-slate-100"
       onSubmit={(event) => {
         event.preventDefault();
+
         let formData = new FormData(event.currentTarget);
-        formData.set("id", crypto.randomUUID());
-        submit(formData, {
-          navigate: false,
-          method: "post",
-          unstable_flushSync: true,
+
+        replicache?.mutate.createColumn({
+          id: nanoid(),
+          boardId,
+          name: formData.get("name") as string,
+          order: nextOrder,
         });
+
         onAdd();
+
         invariant(inputRef.current, "missing input ref");
         inputRef.current.value = "";
       }}
@@ -44,8 +51,6 @@ export function NewColumn({
         }
       }}
     >
-      <input type="hidden" name="intent" value={INTENTS.createColumn} />
-      <input type="hidden" name="boardId" value={boardId} />
       <input
         autoFocus
         required

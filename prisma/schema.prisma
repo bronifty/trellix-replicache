@@ -16,14 +16,15 @@ model Account {
   email  String  @unique
   boards Board[]
 
-  Password Password?
+  Password              Password?
+  ReplicacheClientGroup ReplicacheClientGroup[]
 }
 
 model Password {
   id        String  @id @default(uuid())
   salt      String
   hash      String
-  Account   Account @relation(fields: [accountId], references: [id])
+  Account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
   accountId String  @unique
 }
 
@@ -34,7 +35,7 @@ model Board {
   createdAt DateTime @default(now())
   columns   Column[]
   items     Item[]
-  Account   Account  @relation(fields: [accountId], references: [id])
+  Account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
   accountId String
 }
 
@@ -57,9 +58,22 @@ model Item {
   // will be 1.75, etc.
   order Float
 
-  Column   Column @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  Column   Column  @relation(fields: [columnId], references: [id], onDelete: Cascade)
   columnId String
+  Board    Board?  @relation(fields: [boardId], references: [id])
+  boardId  String?
+}
 
-  Board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  boardId String
+model ReplicacheClientGroup {
+  id               String             @id
+  accountId        String
+  Account          Account            @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  ReplicacheClient ReplicacheClient[]
+}
+
+model ReplicacheClient {
+  id                    String                @id
+  clientGroupId         String
+  ReplicacheClientGroup ReplicacheClientGroup @relation(fields: [clientGroupId], references: [id], onDelete: Cascade)
+  lastMutationID        Int
 }

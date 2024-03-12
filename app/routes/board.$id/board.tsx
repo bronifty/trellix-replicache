@@ -70,9 +70,14 @@ export function Board() {
       </h1>
 
       <div className="flex flex-grow min-h-0 h-full items-start gap-4 px-8 pb-4">
-        {[...columns.values()].map((col) => {
-          return <Column key={col.id} name={col.name} columnId={col.id} />;
-        })}
+        {[...columns.values()].map((col) => (
+          <Column
+            key={col.id}
+            name={col.name}
+            columnId={col.id}
+            boardId={board.id}
+          />
+        ))}
 
         <NewColumn
           boardId={board.id}

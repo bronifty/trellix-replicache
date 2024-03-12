@@ -15,9 +15,10 @@ import { ItemData } from "~/replicache/data";
 interface ColumnProps {
   name: string;
   columnId: string;
+  boardId: string;
 }
 
-export function Column({ name, columnId }: ColumnProps) {
+export function Column({ name, columnId, boardId }: ColumnProps) {
   const items = useSubscribe(
     replicache,
     async (tx) => {
@@ -113,6 +114,7 @@ export function Column({ name, columnId }: ColumnProps) {
       </ul>
       {edit ? (
         <NewCard
+          boardId={boardId}
           columnId={columnId}
           nextOrder={items.length === 0 ? 1 : items[items.length - 1].order + 1}
           onAddCard={() => scrollList()}

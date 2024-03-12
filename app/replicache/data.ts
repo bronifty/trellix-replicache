@@ -18,4 +18,5 @@ export type ItemData = {
   content?: string;
   order: number;
   columnId: string;
+  boardId: string;
 };

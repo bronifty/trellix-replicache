@@ -6,11 +6,13 @@ import { nanoid } from "nanoid";
 
 export function NewCard({
   columnId,
+  boardId,
   nextOrder,
   onComplete,
   onAddCard,
 }: {
   columnId: string;
+  boardId: string;
   nextOrder: number;
   onComplete: () => void;
   onAddCard: () => void;
@@ -29,6 +31,7 @@ export function NewCard({
         replicache?.mutate.createItem({
           id: nanoid(),
           columnId,
+          boardId,
           order: nextOrder,
           title: formData.get("title") as string,
         });

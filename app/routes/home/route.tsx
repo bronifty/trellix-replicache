@@ -1,4 +1,4 @@
-import { Link, useLoaderData, useNavigate } from "@remix-run/react";
+import { Link, useNavigate } from "@remix-run/react";
 import { Button } from "~/components/button";
 import { Label, LabeledInput } from "~/components/input";
 import { Icon } from "~/icons/icons";
@@ -33,9 +33,11 @@ function Boards() {
         .toArray();
 
       // Filter out boards created in the last milliseconds to avoid flashing them.
-      return result.filter(
-        (board) => new Date(board.createdAt).getTime() < Date.now() - 1000,
-      );
+      return result
+        .filter(
+          (board) => new Date(board.createdAt).getTime() < Date.now() - 100,
+        )
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt) * -1);
     },
     {
       default: [],

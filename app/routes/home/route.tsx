@@ -4,7 +4,7 @@ import { Label, LabeledInput } from "~/components/input";
 import { Icon } from "~/icons/icons";
 import { useSubscribe } from "replicache-react";
 import { replicache } from "~/replicache/client";
-import { BoardData, ItemData } from "~/replicache/data";
+import { BoardData } from "~/replicache/data";
 import { nanoid } from "nanoid";
 import { undoManager } from "~/replicache/undo";
 import invariant from "tiny-invariant";

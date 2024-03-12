@@ -82,10 +82,9 @@ export async function handleReplicachePush(
             where: { id: boardId, accountId },
           });
 
-          invariant(
-            !board || board.accountId === accountId,
-            "User does not own board",
-          );
+          if (!board) break;
+
+          invariant(board.accountId === accountId, "User does not own board");
 
           await tx.column.create({
             data: {
@@ -107,8 +106,10 @@ export async function handleReplicachePush(
             },
           });
 
+          if (!column) break;
+
           invariant(
-            !column || column.Board.accountId === accountId,
+            column.Board.accountId === accountId,
             "User does not own board",
           );
 
@@ -127,8 +128,10 @@ export async function handleReplicachePush(
             },
           });
 
+          if (!column) break;
+
           invariant(
-            !column || column.Board.accountId === accountId,
+            column.Board.accountId === accountId,
             "User does not own board",
           );
 
@@ -146,8 +149,10 @@ export async function handleReplicachePush(
             },
           });
 
+          if (!column) break;
+
           invariant(
-            !column || column.Board.accountId === accountId,
+            column.Board.accountId === accountId,
             "User does not own board",
           );
 
@@ -176,8 +181,10 @@ export async function handleReplicachePush(
             },
           });
 
+          if (!item) break;
+
           invariant(
-            !item || item.Column.Board.accountId === accountId,
+            item.Column.Board.accountId === accountId,
             "User does not own board",
           );
 
@@ -200,8 +207,10 @@ export async function handleReplicachePush(
             },
           });
 
+          if (!item) break;
+
           invariant(
-            !item || item.Column.Board.accountId === accountId,
+            item.Column.Board.accountId === accountId,
             "User does not own board",
           );
 

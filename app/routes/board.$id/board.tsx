@@ -5,14 +5,16 @@ import { Column } from "./column";
 import { NewColumn } from "./new-column";
 import { EditableText } from "./components";
 import { useSubscribe } from "replicache-react";
-import { replicache } from "~/replicache/client";
 import { BoardData, ColumnData } from "~/replicache/data";
 import { Icon } from "~/icons/icons";
 import { useHotkeys } from "react-hotkeys-hook";
 import { undoManager } from "~/replicache/undo";
+import { useReplicache } from "~/replicache/provider";
 
 export function Board() {
   const { id } = useParams();
+
+  const replicache = useReplicache();
 
   const board = useSubscribe(replicache, async (tx) => {
     const [board] = await tx

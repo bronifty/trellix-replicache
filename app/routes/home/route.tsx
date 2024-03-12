@@ -3,11 +3,11 @@ import { Button } from "~/components/button";
 import { Label, LabeledInput } from "~/components/input";
 import { Icon } from "~/icons/icons";
 import { useSubscribe } from "replicache-react";
-import { replicache } from "~/replicache/client";
 import { BoardData } from "~/replicache/data";
 import { nanoid } from "nanoid";
 import { undoManager } from "~/replicache/undo";
 import invariant from "tiny-invariant";
+import { useReplicache } from "~/replicache/provider";
 
 export const meta = () => {
   return [{ title: "Boards" }];
@@ -23,6 +23,8 @@ export default function Projects() {
 }
 
 function Boards() {
+  const replicache = useReplicache();
+
   const boards = useSubscribe(
     replicache,
     (tx) => tx.scan<BoardData>({ prefix: `board/` }).values().toArray(),
@@ -57,6 +59,8 @@ function Board({
   id: string;
   color: string;
 }) {
+  const replicache = useReplicache();
+
   return (
     <Link
       to={`/board/${id}`}
@@ -104,6 +108,7 @@ function Board({
 
 function NewBoard() {
   let navigate = useNavigate();
+  let replicache = useReplicache();
 
   return (
     <form
@@ -119,11 +124,13 @@ function NewBoard() {
           color: formData.get("color") as string,
           createdAt: new Date().toISOString(),
         };
-
         undoManager.add({
           execute: () => {
-            replicache?.mutate.createBoard(board);
             navigate(`/board/${board.id}`);
+            // Avoid new board flash
+            setTimeout(() => {
+              replicache?.mutate.createBoard(board);
+            }, 0);
           },
           undo: () => {
             replicache?.mutate.deleteBoard(board.id);

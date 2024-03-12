@@ -1,14 +1,14 @@
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import invariant from "tiny-invariant";
 import { Icon } from "~/icons/icons";
-import { Form, useSubmit } from "@remix-run/react";
+import { Form } from "@remix-run/react";
 
 import { CancelButton, SaveButton } from "./components";
-import { replicache } from "~/replicache/client";
 import { nanoid } from "nanoid";
 import { ColumnData } from "~/replicache/data";
 import { undoManager } from "~/replicache/undo";
+import { useReplicache } from "~/replicache/provider";
 
 export function NewColumn({
   boardId,
@@ -23,7 +23,7 @@ export function NewColumn({
 }) {
   let [editing, setEditing] = useState(editInitially);
   let inputRef = useRef<HTMLInputElement>(null);
-  let submit = useSubmit();
+  let replicache = useReplicache();
 
   return editing ? (
     <Form

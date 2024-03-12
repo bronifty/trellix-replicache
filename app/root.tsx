@@ -16,6 +16,7 @@ import { getAuthFromRequest } from "./auth/auth";
 import "./styles.css";
 import { useHotkeys } from "react-hotkeys-hook";
 import { undoManager } from "~/replicache/undo";
+import { ReplicacheProvider } from "~/replicache/provider";
 
 export async function loader({ request }: DataFunctionArgs) {
   let auth = await getAuthFromRequest(request);
@@ -92,7 +93,9 @@ export default function App() {
           </div>
 
           <div className="flex-grow min-h-0 h-full">
-            <Outlet />
+            <ReplicacheProvider userId={userId}>
+              <Outlet />
+            </ReplicacheProvider>
           </div>
         </div>
 

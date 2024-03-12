@@ -4,9 +4,9 @@ import { useState } from "react";
 import { Icon } from "~/icons/icons";
 
 import { CONTENT_TYPES } from "./types";
-import { replicache } from "~/replicache/client";
 import { ItemData } from "~/replicache/data";
 import { undoManager } from "~/replicache/undo";
+import { useReplicache } from "~/replicache/provider";
 
 interface CardProps {
   title: string;
@@ -28,6 +28,7 @@ export function Card({
   previousOrder,
 }: CardProps) {
   let [acceptDrop, setAcceptDrop] = useState<"none" | "top" | "bottom">("none");
+  let replicache = useReplicache();
 
   return (
     <li

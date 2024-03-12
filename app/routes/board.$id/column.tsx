@@ -9,9 +9,9 @@ import { flushSync } from "react-dom";
 import { Card } from "./card";
 import { EditableText } from "./components";
 import { useSubscribe } from "replicache-react";
-import { replicache } from "~/replicache/client";
 import { ItemData } from "~/replicache/data";
 import { undoManager } from "~/replicache/undo";
+import { useReplicache } from "~/replicache/provider";
 
 interface ColumnProps {
   name: string;
@@ -20,6 +20,8 @@ interface ColumnProps {
 }
 
 export function Column({ name, columnId, boardId }: ColumnProps) {
+  let replicache = useReplicache();
+
   const items = useSubscribe(
     replicache,
     async (tx) => {

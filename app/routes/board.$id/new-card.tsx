@@ -1,9 +1,9 @@
 import { useRef } from "react";
 import invariant from "tiny-invariant";
 import { CancelButton, SaveButton } from "./components";
-import { replicache } from "~/replicache/client";
 import { nanoid } from "nanoid";
 import { undoManager } from "~/replicache/undo";
+import { useReplicache } from "~/replicache/provider";
 
 export function NewCard({
   columnId,
@@ -20,6 +20,7 @@ export function NewCard({
 }) {
   let textAreaRef = useRef<HTMLTextAreaElement>(null);
   let buttonRef = useRef<HTMLButtonElement>(null);
+  let replicache = useReplicache();
 
   return (
     <form

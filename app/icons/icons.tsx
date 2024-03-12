@@ -6,11 +6,12 @@ export function Icon({
   spin = false,
 }: {
   name: string;
-  size?: "md" | "xl";
+  size?: "md" | "lg" | "xl";
   spin?: boolean;
 }) {
   let classNames = {
     md: "w-4 h-4",
+    lg: "w-6 h-6",
     xl: "w-8 h-8",
   };
   return (

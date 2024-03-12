@@ -1,12 +1,13 @@
 import { useRef } from "react";
 import invariant from "tiny-invariant";
-import { useParams } from "@remix-run/react";
+import { Link, useParams } from "@remix-run/react";
 import { Column } from "./column";
 import { NewColumn } from "./new-column";
 import { EditableText } from "./components";
 import { useSubscribe } from "replicache-react";
 import { replicache } from "~/replicache/client";
 import { BoardData, ColumnData } from "~/replicache/data";
+import { Icon } from "~/icons/icons";
 
 export function Board() {
   const { id } = useParams();
@@ -55,19 +56,25 @@ export function Board() {
       ref={scrollContainerRef}
       style={{ backgroundColor: board.color }}
     >
-      <h1>
-        <EditableText
-          value={board.name}
-          fieldName="name"
-          inputClassName="mx-8 my-4 text-2xl font-medium border border-slate-400 rounded-lg py-1 px-2 text-black"
-          buttonClassName="mx-8 my-4 text-2xl font-medium block rounded-lg text-left border border-transparent py-1 px-2 text-slate-800"
-          buttonLabel={`Edit board "${board.name}" name`}
-          inputLabel="Edit board name"
-          onEdit={(text) => {
-            replicache?.mutate.updateBoard({ id: board.id, name: text });
-          }}
-        />
-      </h1>
+      <div className="mx-8 my-4 flex items-center gap-3">
+        <Link to="/home">
+          <span className="sr-only">Go to home</span>
+          <Icon name="arrow-left" size="lg" />
+        </Link>
+        <h1>
+          <EditableText
+            value={board.name}
+            fieldName="name"
+            inputClassName="text-2xl font-medium border border-slate-400 rounded-lg py-1 px-2 text-black"
+            buttonClassName="text-2xl font-medium block rounded-lg text-left border border-transparent py-1 px-2 text-slate-800"
+            buttonLabel={`Edit board "${board.name}" name`}
+            inputLabel="Edit board name"
+            onEdit={(text) => {
+              replicache?.mutate.updateBoard({ id: board.id, name: text });
+            }}
+          />
+        </h1>
+      </div>
 
       <div className="flex flex-grow min-h-0 h-full items-start gap-4 px-8 pb-4">
         {[...columns.values()].map((col) => (

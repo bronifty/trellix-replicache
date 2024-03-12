@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@remix-run/react";
+import { Link, useLoaderData, useNavigate } from "@remix-run/react";
 import { Button } from "~/components/button";
 import { Label, LabeledInput } from "~/components/input";
 import { Icon } from "~/icons/icons";
@@ -26,7 +26,17 @@ function Boards() {
 
   const boards = useSubscribe(
     replicache,
-    (tx) => tx.scan<BoardData>({ prefix: `board/` }).values().toArray(),
+    async (tx) => {
+      const result = await tx
+        .scan<BoardData>({ prefix: `board/` })
+        .values()
+        .toArray();
+
+      // Filter out boards created in the last milliseconds to avoid flashing them.
+      return result.filter(
+        (board) => new Date(board.createdAt).getTime() < Date.now() - 1000,
+      );
+    },
     {
       default: [],
     },
@@ -117,10 +127,7 @@ function NewBoard() {
         undoManager.add({
           execute: () => {
             navigate(`/board/${board.id}`);
-            // Avoid new board flash
-            setTimeout(() => {
-              replicache?.mutate.createBoard(board);
-            }, 100);
+            replicache?.mutate.createBoard(board);
           },
           undo: () => {
             replicache?.mutate.deleteBoard(board.id);

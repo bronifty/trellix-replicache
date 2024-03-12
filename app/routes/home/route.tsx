@@ -130,7 +130,7 @@ function NewBoard() {
             // Avoid new board flash
             setTimeout(() => {
               replicache?.mutate.createBoard(board);
-            }, 0);
+            }, 1);
           },
           undo: () => {
             replicache?.mutate.deleteBoard(board.id);

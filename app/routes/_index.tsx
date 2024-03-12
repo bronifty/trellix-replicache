@@ -2,23 +2,22 @@ import type { MetaFunction } from "@remix-run/node";
 import { Link } from "@remix-run/react";
 
 export const meta: MetaFunction = () => {
-  return [{ title: "Trellix, a Remix Demo" }];
+  return [{ title: "Trellix Replicache, a Replicache Demo" }];
 };
 
 export default function Index() {
   return (
     <div className="h-full flex flex-col items-center pt-20 bg-slate-900">
-      <img src="/remix-logo-new@dark.png" width="402" height="149" />
       <Link to="/about">About</Link>
       <div className="space-y-4 max-w-md text-lg text-slate-300">
         <p>
-          This is a demo app to show off the features of Remix and teach them
-          through some videos we've published on{" "}
+          This is a demo app to show off the features of Replicache to compare
+          them with those of vanilla Remix and React Query.{" "}
           <a
-            href="https://www.youtube.com/watch?v=RTHzZVbTl6c&list=PLXoynULbYuED9b2k5LS44v9TQjfXifwNu&pp=gAQBiAQB"
+            href="https://twitter.com/thdxr/status/1767247870271295497"
             className="underline"
           >
-            YouTube
+            More context on Twitter
           </a>
           .
         </p>

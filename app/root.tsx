@@ -49,27 +49,22 @@ export default function App() {
         <div className="h-full flex flex-col min-h-0">
           <div className="bg-slate-900 border-b border-slate-800 flex items-center justify-between py-4 px-8 box-border">
             <Link to="/home" className="block leading-3 w-1/3">
-              <div className="font-black text-2xl text-white">Trellix</div>
-              <div className="text-slate-500">a Remix Demo</div>
+              <div className="font-black text-2xl text-white">
+                Trellix Replicache
+              </div>
+              <div className="text-slate-500">a Replicache Demo</div>
             </Link>
-            <div className="flex items-center gap-6">
+            <div className="w-1/3 flex justify-end gap-6">
               <IconLink
-                href="https://www.youtube.com/watch?v=RTHzZVbTl6c&list=PLXoynULbYuED9b2k5LS44v9TQjfXifwNu&pp=gAQBiAQB"
-                icon="/yt_icon_mono_dark.png"
-                label="Videos"
-              />
-              <IconLink
-                href="https://github.com/remix-run/example-trellix"
+                href="https://github.com/vimtor/trellix-replicache"
                 label="Source"
                 icon="/github-mark-white.png"
               />
               <IconLink
-                href="https://remix.run/docs/en/main"
+                href="https://replicache.dev"
                 icon="/r.png"
                 label="Docs"
               />
-            </div>
-            <div className="w-1/3 flex justify-end">
               {userId ? (
                 <form method="post" action="/logout">
                   <button className="block text-center">

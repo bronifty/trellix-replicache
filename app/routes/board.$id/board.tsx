@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import invariant from "tiny-invariant";
 import { Link, useNavigate, useParams } from "@remix-run/react";
 import { Column } from "./column";
@@ -10,19 +10,22 @@ import { Icon } from "~/icons/icons";
 import { useHotkeys } from "react-hotkeys-hook";
 import { undoManager } from "~/replicache/undo";
 import { useReplicache } from "~/replicache/provider";
+import { useEnsureLoggedIn } from "~/auth/provider";
 
 export function Board() {
   const { id } = useParams();
 
   const replicache = useReplicache();
 
-  const board = useSubscribe(replicache, async (tx) => {
-    const [board] = await tx
+  const boards = useSubscribe(replicache, async (tx) => {
+    return tx
       .scan<BoardData>({ prefix: `board/${id}`, limit: 1 })
       .values()
       .toArray();
-    return board;
   });
+
+  const board = boards?.[0];
+  const doesBoardExist = !!board || !boards;
 
   const columns = useSubscribe(
     replicache,
@@ -43,18 +46,27 @@ export function Board() {
   );
 
   const navigate = useNavigate();
+
   useHotkeys("esc", () => navigate("/home"), []);
 
   let scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEnsureLoggedIn();
+
+  useEffect(() => {
+    if (!doesBoardExist) {
+      navigate("/home");
+    }
+  }, [doesBoardExist]);
+
+  if (!board) {
+    return null;
+  }
 
   function scrollRight() {
     invariant(scrollContainerRef.current, "no scroll container");
     scrollContainerRef.current.scrollLeft =
       scrollContainerRef.current.scrollWidth;
-  }
-
-  if (!board) {
-    return null;
   }
 
   return (

@@ -7,6 +7,7 @@ import { BoardData } from "~/replicache/data";
 import { nanoid } from "nanoid";
 import { undoManager } from "~/replicache/undo";
 import { useReplicache } from "~/replicache/provider";
+import { useEnsureLoggedIn } from "~/auth/provider";
 
 export const meta = () => {
   return [{ title: "Boards" }];
@@ -43,6 +44,8 @@ function Boards() {
       default: [],
     },
   );
+
+  useEnsureLoggedIn();
 
   return (
     <div className="p-8">

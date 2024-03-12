@@ -58,10 +58,10 @@ model Item {
   // will be 1.75, etc.
   order Float
 
-  Column   Column  @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  Column   Column @relation(fields: [columnId], references: [id], onDelete: Cascade)
   columnId String
-  Board    Board?  @relation(fields: [boardId], references: [id])
-  boardId  String?
+  Board    Board  @relation(fields: [boardId], references: [id])
+  boardId  String
 }
 
 model ReplicacheClientGroup {

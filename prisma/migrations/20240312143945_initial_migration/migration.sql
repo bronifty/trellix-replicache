@@ -18,7 +18,7 @@ CREATE TABLE "Password" (
 
 -- CreateTable
 CREATE TABLE "Board" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "color" TEXT NOT NULL DEFAULT '#e0e0e0',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -32,7 +32,7 @@ CREATE TABLE "Column" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "order" DOUBLE PRECISION NOT NULL DEFAULT 0,
-    "boardId" INTEGER NOT NULL,
+    "boardId" TEXT NOT NULL,
 
     CONSTRAINT "Column_pkey" PRIMARY KEY ("id")
 );
@@ -44,9 +44,26 @@ CREATE TABLE "Item" (
     "content" TEXT,
     "order" DOUBLE PRECISION NOT NULL,
     "columnId" TEXT NOT NULL,
-    "boardId" INTEGER NOT NULL,
+    "boardId" TEXT NOT NULL,
 
     CONSTRAINT "Item_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ReplicacheClientGroup" (
+    "id" TEXT NOT NULL,
+    "accountId" TEXT NOT NULL,
+
+    CONSTRAINT "ReplicacheClientGroup_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ReplicacheClient" (
+    "id" TEXT NOT NULL,
+    "clientGroupId" TEXT NOT NULL,
+    "lastMutationID" INTEGER NOT NULL,
+
+    CONSTRAINT "ReplicacheClient_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -56,10 +73,10 @@ CREATE UNIQUE INDEX "Account_email_key" ON "Account"("email");
 CREATE UNIQUE INDEX "Password_accountId_key" ON "Password"("accountId");
 
 -- AddForeignKey
-ALTER TABLE "Password" ADD CONSTRAINT "Password_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Password" ADD CONSTRAINT "Password_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Board" ADD CONSTRAINT "Board_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Board" ADD CONSTRAINT "Board_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Column" ADD CONSTRAINT "Column_boardId_fkey" FOREIGN KEY ("boardId") REFERENCES "Board"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -68,4 +85,10 @@ ALTER TABLE "Column" ADD CONSTRAINT "Column_boardId_fkey" FOREIGN KEY ("boardId"
 ALTER TABLE "Item" ADD CONSTRAINT "Item_columnId_fkey" FOREIGN KEY ("columnId") REFERENCES "Column"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Item" ADD CONSTRAINT "Item_boardId_fkey" FOREIGN KEY ("boardId") REFERENCES "Board"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Item" ADD CONSTRAINT "Item_boardId_fkey" FOREIGN KEY ("boardId") REFERENCES "Board"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ReplicacheClientGroup" ADD CONSTRAINT "ReplicacheClientGroup_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ReplicacheClient" ADD CONSTRAINT "ReplicacheClient_clientGroupId_fkey" FOREIGN KEY ("clientGroupId") REFERENCES "ReplicacheClientGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE;

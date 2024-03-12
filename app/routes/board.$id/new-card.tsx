@@ -25,7 +25,7 @@ export function NewCard({
   return (
     <form
       className="px-2 py-1 border-t-2 border-b-2 border-transparent"
-      onSubmit={(event) => {
+      onSubmit={async (event) => {
         event.preventDefault();
 
         let formData = new FormData(event.currentTarget);
@@ -38,7 +38,7 @@ export function NewCard({
           title: formData.get("title") as string,
         };
 
-        undoManager.add({
+        await undoManager.add({
           execute: () => replicache?.mutate.createItem(item),
           undo: () => replicache?.mutate.deleteItem(item.id),
         });

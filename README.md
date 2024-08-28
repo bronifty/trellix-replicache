@@ -1,5 +1,3 @@
 ```sh
-npm i
-npx prisma migrate dev
-npm run dev
+pnpm i && cp env .env & npx prisma migrate dev && pnpm dev
 ```
